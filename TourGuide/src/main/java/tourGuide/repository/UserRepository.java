@@ -22,7 +22,6 @@ import java.util.stream.IntStream;
 public class UserRepository {
 
     private final Map<String, User> internalUserMap = new HashMap<>();
-    private static final List<String> CURRENCIES = Arrays.asList("USD", "EUR", "GBP", "JPY", "AUD");
 
     public Map<String, User> getMapOfUsers() {
         if (internalUserMap.isEmpty()) {
@@ -36,8 +35,7 @@ public class UserRepository {
             String userName = "TestUser" + i;
             String phone = "000";
             String email = userName + "@tourGuide.com";
-            User user = new User(UUID.randomUUID(), userName, phone, email,
-                    new UserPreferences());
+            User user = new User(UUID.randomUUID(), userName, phone, email, new UserPreferences());
             generateUserLocationHistory(user);
 
             internalUserMap.put(userName, user);
@@ -68,51 +66,4 @@ public class UserRepository {
         return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
     }
 
-    private int generateRandomAttractionProximity() {
-        Random random = new Random();
-        return random.nextInt(10);
-    }
-
-
-    private String generateRandomCurrency() {
-        Random random = new Random();
-        int index = random.nextInt(CURRENCIES.size());
-        return CURRENCIES.get(index);
-    }
-
-    private BigDecimal generateRandomAmount() {
-        Random random = new Random();
-        int amount = random.nextInt(990) + 10;
-        return BigDecimal.valueOf(amount);
-    }
-
-    private CurrencyUnit generateCurrency(String currencyCode) {
-        return Monetary.getCurrency(currencyCode);
-    }
-
-    private Money generateRandomMoney() {
-        String currencyCode = generateRandomCurrency();
-        BigDecimal amount = generateRandomAmount();
-        CurrencyUnit currency = generateCurrency(currencyCode);
-        return (Money) Monetary.getDefaultAmountFactory()
-                .setCurrency(currency)
-                .setNumber(amount)
-                .create();
-    }
-
-    private int generateRandomTripDuration() {
-        Random random = new Random();
-        return random.nextInt(30) + 1;    }
-
-    private int generateRandomTicketQuantity() {
-        Random random = new Random();
-        return random.nextInt(10) + 1;    }
-
-    private int generateRandomNumberOfAdults() {
-        Random random = new Random();
-        return random.nextInt(4) + 1;    }
-
-    private int generateRandomNumberOfChildren() {
-        Random random = new Random();
-        return random.nextInt(5);    }
 }
