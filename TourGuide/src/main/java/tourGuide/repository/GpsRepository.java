@@ -13,8 +13,6 @@ public class GpsRepository {
 
     @Autowired
     private GpsUtil gpsUtiL;
-    @Autowired
-    private UserService userService;
 
     public VisitedLocation getUserLocation(UUID userId) {
         return gpsUtiL.getUserLocation(userId);
