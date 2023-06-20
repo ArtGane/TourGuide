@@ -22,9 +22,6 @@ public class TourGuideController {
     TourGuideService tourGuideService;
 
     @Autowired
-    AttractionService attractionService;
-
-    @Autowired
     GpsService gpsService;
 
     @Autowired
@@ -36,19 +33,20 @@ public class TourGuideController {
     }
 
     @RequestMapping("/getLocation")
-    public Location getLocation(@RequestParam String userName) {
-        return gpsService.getUserLocation(userService.getUserByName(userName));
+    public Location getLocation(@RequestParam String userName) throws Exception {
+       Location location = gpsService.getUserLocation(userService.getUserByName(userName)).call();
+        return location;
     }
 
     @GetMapping("/getNearbyAttractions")
-    public List<NearbyAttractionDto> getNearbyAttractions(@RequestParam String userName) {
+    public List<NearbyAttractionDto> getNearbyAttractions(@RequestParam String userName) throws Exception {
         List<NearbyAttractionDto> nearbyAttractionDtos = gpsService.getNearbyAttractions(userName);
         return nearbyAttractionDtos;
     }
 
     @GetMapping("/getAllCurrentLocations")
-    public Map<String, VisitedLocation> getAllCurrentLocations() {
-        Map<String, VisitedLocation> locationsMap = userService.getAllCurrentLocations();
+    public Map<String, Location> getAllCurrentLocations() {
+        Map<String, Location> locationsMap = gpsService.getAllCurrentLocations();
         return locationsMap;
     }
 
