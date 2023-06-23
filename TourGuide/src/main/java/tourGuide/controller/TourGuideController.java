@@ -3,11 +3,10 @@ package tourGuide.controller;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tourGuide.dto.NearbyAttractionDto;
+import tourGuide.dto.UserPreferencesDto;
+import tourGuide.model.UserPreferences;
 import tourGuide.service.GpsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.service.UserService;
@@ -34,7 +33,7 @@ public class TourGuideController {
 
     @RequestMapping("/getLocation")
     public Location getLocation(@RequestParam String userName) throws Exception {
-       Location location = gpsService.getUserLocation(userService.getUserByName(userName)).call();
+        Location location = gpsService.getUserLocation(userService.getUserByName(userName)).call();
         return location;
     }
 
@@ -54,6 +53,12 @@ public class TourGuideController {
     public List<Provider> getTripDeals(@RequestParam String userName) {
         List<Provider> providers = tourGuideService.getTripDeals(userService.getUserByName(userName));
         return providers;
+    }
+
+    @PostMapping("/updatePreferences")
+    public UserPreferencesDto updateUserPreferences(@RequestParam String userName, @RequestBody UserPreferencesDto userPreferencesDto) {
+        UserPreferencesDto preferences = userService.updateUserPreferences(userName, userPreferencesDto);
+        return preferences;
     }
 
 }

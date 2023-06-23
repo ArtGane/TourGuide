@@ -1,15 +1,18 @@
 package tourGuide.service;
 
 import gpsUtil.location.VisitedLocation;
+import org.javamoney.moneta.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tourGuide.dto.UserPreferencesDto;
 import tourGuide.model.User;
 import tourGuide.model.UserPreferences;
 import tourGuide.model.UserReward;
 import tourGuide.repository.UserRepository;
 
+import javax.money.Monetary;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,19 +44,46 @@ public class UserService {
         }
     }
 
-    public void updateUserPreferences(UserPreferences userPreferences) {
-        Random random = new Random();
-        int tripDuration = random.nextInt(4, 20);
-        userPreferences.setTripDuration(tripDuration);
 
-        int ticketQuantity = random.nextInt(1, 8);
-        userPreferences.setTicketQuantity(ticketQuantity);
+    public UserPreferencesDto updateUserPreferences(String userName, UserPreferencesDto preferencesDto) {
+        User user = getUserByName(userName);
 
-        int numberOfAdults = random.nextInt(1, 5);
-        userPreferences.setNumberOfAdults(numberOfAdults);
+        if (user != null) {
+            UserPreferences userPreferences = user.getUserPreferences();
 
-        int numberOfChildren = random.nextInt(1, 3);
-        userPreferences.setNumberOfChildren(numberOfChildren);
+            userPreferences.setAttractionProximity(preferencesDto.getAttractionProximity());
+            userPreferences.setCurrency(Monetary.getCurrency(preferencesDto.getCurrency()));
+            userPreferences.setLowerPricePoint(Money.of(preferencesDto.getLowerPricePoint(), userPreferences.getCurrency()));
+            userPreferences.setHighPricePoint(Money.of(preferencesDto.getHighPricePoint(), userPreferences.getCurrency()));
+            userPreferences.setTripDuration(preferencesDto.getTripDuration());
+            userPreferences.setTicketQuantity(preferencesDto.getTicketQuantity());
+            userPreferences.setNumberOfAdults(preferencesDto.getNumberOfAdults());
+            userPreferences.setNumberOfChildren(preferencesDto.getNumberOfChildren());
+
+
+            UserPreferencesDto updatedPreferencesDto = convertToDto(userPreferences);
+
+            return updatedPreferencesDto;
+        } else {
+            logger.error("UserService: User can't be null");
+            return null;
+        }
+    }
+
+    private UserPreferencesDto convertToDto(UserPreferences userPreferences) {
+        UserPreferencesDto preferencesDto = new UserPreferencesDto();
+        preferencesDto.setAttractionProximity(userPreferences.getAttractionProximity());
+        preferencesDto.setCurrency(userPreferences.getCurrency().getCurrencyCode());
+        preferencesDto.setLowerPricePoint(userPreferences.getLowerPricePoint().getNumber().intValue());
+        preferencesDto.setHighPricePoint(userPreferences.getHighPricePoint().getNumber().intValue());
+        preferencesDto.setTripDuration(userPreferences.getTripDuration());
+        preferencesDto.setTicketQuantity(userPreferences.getTicketQuantity());
+        preferencesDto.setNumberOfAdults(userPreferences.getNumberOfAdults());
+        preferencesDto.setNumberOfChildren(userPreferences.getNumberOfChildren());
+
+        logger.info("Les preferences utilisateur ont ete mises à jour");
+
+        return preferencesDto;
     }
 
     public void addToVisitedLocations(VisitedLocation visitedLocation, String userName) {

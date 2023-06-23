@@ -79,4 +79,8 @@ public class UserPreferences {
 	public void setCurrency(CurrencyUnit randomCurrency) {
 		this.currency = currency;
 	}
+
+	public CurrencyUnit getCurrency() {
+		return currency;
+	}
 }
