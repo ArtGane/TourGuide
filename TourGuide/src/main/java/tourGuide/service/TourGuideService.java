@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import tourGuide.model.User;
+import tourGuide.model.UserPreferences;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
@@ -17,6 +18,7 @@ public class TourGuideService {
     private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
     @Autowired
     private TripPricer tripPricer;
+
     private static final String tripPricerApiKey = "test-server-api-key";
 
     public TourGuideService() {

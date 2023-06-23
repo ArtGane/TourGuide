@@ -52,7 +52,7 @@ public class GpsService {
 
     public VisitedLocation trackUserLocation(User user) throws Exception {
         VisitedLocation visitedLocation = gpsRepository.getUserLocation(user.getUserId());
-        logger.info("Location tracked: {} - {}", visitedLocation.location.latitude, visitedLocation.location.longitude);
+        logger.info("Location tracked: {} | {}", visitedLocation.location.latitude, visitedLocation.location.longitude);
 
         userService.addToVisitedLocations(visitedLocation, user.getUserName());
         logger.info("Visited location added to user's visited locations.");
@@ -69,6 +69,14 @@ public class GpsService {
         };
     }
 
+    /**
+     * Récupère les emplacements actuels de tous les utilisateurs.
+     * Cette méthode utilise un ThreadPool d'exécuteurs pour paralléliser la récupération des emplacements des utilisateurs.
+     *
+     * @return Une carte (Map) associant le nom d'utilisateur (String) à son emplacement actuel (Location).
+     * Si aucun utilisateur n'est trouvé ou s'il y a une erreur lors de l'exécution des tâches de localisation,
+     * la carte retournée sera vide.
+     */
     public Map<String, Location> getAllCurrentLocations() {
         ExecutorService executorService = Executors.newFixedThreadPool(100);
         Map<String, Location> currentLocations = new HashMap<>();
@@ -170,81 +178,49 @@ public class GpsService {
         return getDistance(attraction, location) > proximityBuffer ? false : true;
     }
 
-//    public void calculateRewards(User user) throws ExecutionException, InterruptedException {
-//        List<VisitedLocation> userLocations = user.getVisitedLocations();
-//        List<Attraction> attractions = getAttractions();
-//        List<Callable<Void>> rewardTasks = new ArrayList<>();
-//        for (VisitedLocation visitedLocation : userLocations) {
-//            for (Attraction attraction : attractions) {
-//                if (user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
-//                    Callable<Void> rewardTask = () -> {
-//                        if (nearAttraction(visitedLocation.location, attraction)) {
-//                            user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-//                        }
-//                        return null;
-//                    };
-//                    rewardTasks.add(rewardTask);
-//                }
-//            }
-//        }
-//        ExecutorService executorService = Executors.newCachedThreadPool();
-//        List<Future<Void>> futures = executorService.invokeAll(rewardTasks);
-//        for (Future<Void> future : futures) {
-//            future.get();
-//        }
-//        executorService.shutdown();
-//    }
 
-    private int getRewardPoints(Attraction attraction, User user) {
-        return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
+    private Callable<Integer> getRewardPointsAsync(Attraction attraction, User user) {
+        return () -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
     }
 
-    private void calculateRewards(User user) {
+    private int getRewardPoints(Attraction attraction, User user) throws InterruptedException, ExecutionException {
+        Callable<Integer> rewardPointsTask = getRewardPointsAsync(attraction, user);
+        Future<Integer> future = Executors.newFixedThreadPool(100).submit(rewardPointsTask);
+        int rewardPoints = future.get();
+        return rewardPoints;
+    }
+
+    public void calculateRewards(User user) throws InterruptedException, ExecutionException {
         List<VisitedLocation> userLocations = user.getVisitedLocations();
         List<Attraction> attractions = getAttractions();
-        userService.updateUserPreferences(user.getUserPreferences());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1000);
+        List<Callable<Void>> rewardTasks = new ArrayList<>();
+
         for (VisitedLocation visitedLocation : userLocations) {
             for (Attraction attraction : attractions) {
-                if (user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
+                if (user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attraction.attractionName))) {
                     if (nearAttraction(visitedLocation.location, attraction)) {
-                        int rewardPoints = getRewardPoints(attraction, user);
-                        user.addUserReward(new UserReward(visitedLocation, attraction, rewardPoints));
-                        logger.info("GpsService: {} add a new reward from {}: {}", user.getUserName(), attraction.attractionName, rewardPoints);
+                        Callable<Void> rewardTask = () -> {
+                            int rewardPoints = getRewardPoints(attraction, user);
+                            user.addUserReward(new UserReward(visitedLocation, attraction, rewardPoints));
+                            logger.info("GpsService: {} add a new reward from {}: {}", user.getUserName(), attraction.attractionName, rewardPoints);
+                            return null;
+                        };
+                        rewardTasks.add(rewardTask);
                     }
                 }
             }
         }
-    }
 
-    private int calculateTotalRewardPoints(User user) {
-        int totalRewardPoints = 0;
-        for (UserReward userReward : user.getUserRewards()) {
-            totalRewardPoints += userReward.getRewardPoints();
-        }
-        return totalRewardPoints;
-    }
+        List<Future<Void>> futures = executorService.invokeAll(rewardTasks);
 
-    public void getAllRewardsPoints() throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        List<User> users = userService.getAllUsers();
-        List<Callable<Void>> rewardTasks = new ArrayList<>();
-
-        for (User user : users) {
-            Callable<Void> rewardTask = () -> {
-                calculateRewards(user);
-                return null;
-            };
-            rewardTasks.add(rewardTask);
+        // Wait for all tasks to complete
+        for (Future<Void> future : futures) {
+            future.get();
         }
 
-        executorService.invokeAll(rewardTasks);
         executorService.shutdown();
-
-        Map<String, Integer> rewardsPoints = new HashMap<>();
-        for (User user : users) {
-            int totalRewardPoints = calculateTotalRewardPoints(user);
-            rewardsPoints.put(user.getUserName(), totalRewardPoints);
-        }
     }
 
 }
