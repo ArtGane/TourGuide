@@ -75,28 +75,20 @@ public class TestPerformance {
 
     @Test
     public void highVolumeGetRewards() {
-
         Attraction attraction = gpsService.getAttractions().get(0);
         List<User> allUsers = userService.getAllUsers();
         allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        allUsers.forEach(u -> {
-            try {
-                gpsService.calculateRewards(u);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        gpsService.getAllRewards(allUsers);
         stopWatch.stop();
 
-        for(User user : allUsers) {
+        for (User user : allUsers) {
             assertTrue(user.getUserRewards().size() > 0);
         }
 
+        System.out.println("Number of users created: " + allUsers.size());
         System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
         assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
     }

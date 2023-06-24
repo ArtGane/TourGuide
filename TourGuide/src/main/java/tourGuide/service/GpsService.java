@@ -50,17 +50,23 @@ public class GpsService {
         return attractions;
     }
 
-    public VisitedLocation trackUserLocation(User user) throws Exception {
+    public VisitedLocation trackUserLocation(User user) {
         VisitedLocation visitedLocation = gpsRepository.getUserLocation(user.getUserId());
         logger.info("Location tracked: {} | {}", visitedLocation.location.latitude, visitedLocation.location.longitude);
 
         userService.addToVisitedLocations(visitedLocation, user.getUserName());
         logger.info("Visited location added to user's visited locations.");
 
-        calculateRewards(user);
+        calculateRewardsCallable(user);
         return visitedLocation;
     }
 
+    /**
+     * Récupère la localisation de l'utilisateur.
+     *
+     * @param user L'utilisateur dont on souhaite obtenir la localisation.
+     * @return Un objet Callable<Location> qui peut être utilisé pour obtenir la localisation de l'utilisateur.
+     */
     public Callable<Location> getUserLocation(User user) {
         return () -> {
             VisitedLocation visitedLocation = trackUserLocation(user);
@@ -178,49 +184,67 @@ public class GpsService {
         return getDistance(attraction, location) > proximityBuffer ? false : true;
     }
 
-
-    private Callable<Integer> getRewardPointsAsync(Attraction attraction, User user) {
-        return () -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
+    private int getRewardPoints(Attraction attraction, User user) {
+        return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
     }
 
-    private int getRewardPoints(Attraction attraction, User user) throws InterruptedException, ExecutionException {
-        Callable<Integer> rewardPointsTask = getRewardPointsAsync(attraction, user);
-        Future<Integer> future = Executors.newFixedThreadPool(100).submit(rewardPointsTask);
-        int rewardPoints = future.get();
-        return rewardPoints;
-    }
-
-    public void calculateRewards(User user) throws InterruptedException, ExecutionException {
+    /**
+     * Calcule les récompenses pour un utilisateur donné en fonction d'une liste d'attractions.
+     *
+     * @param user L'utilisateur pour lequel les récompenses doivent être calculées.
+     * @param attractions La liste des attractions utilisées pour calculer les récompenses.
+     */
+    public void calculateRewards(User user, List<Attraction> attractions) {
         List<VisitedLocation> userLocations = user.getVisitedLocations();
-        List<Attraction> attractions = getAttractions();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(1000);
-        List<Callable<Void>> rewardTasks = new ArrayList<>();
-
-        for (VisitedLocation visitedLocation : userLocations) {
-            for (Attraction attraction : attractions) {
-                if (user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attraction.attractionName))) {
-                    if (nearAttraction(visitedLocation.location, attraction)) {
-                        Callable<Void> rewardTask = () -> {
-                            int rewardPoints = getRewardPoints(attraction, user);
-                            user.addUserReward(new UserReward(visitedLocation, attraction, rewardPoints));
-                            logger.info("GpsService: {} add a new reward from {}: {}", user.getUserName(), attraction.attractionName, rewardPoints);
-                            return null;
-                        };
-                        rewardTasks.add(rewardTask);
+        for(VisitedLocation visitedLocation : userLocations) {
+            for(Attraction attraction : attractions) {
+                if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+                    if(nearAttraction(visitedLocation.location, attraction)) {
+                        int rewardPoint = getRewardPoints(attraction, user);
+                        user.addUserReward(new UserReward(visitedLocation, attraction, rewardPoint));
+                        logger.info("GpsService: {} add a new reward from {}: {}", user.getUserName(), attraction.attractionName, rewardPoint);
                     }
                 }
             }
         }
+    }
 
-        List<Future<Void>> futures = executorService.invokeAll(rewardTasks);
+    /**
+     * Crée un objet Callable<Void> pour le calcul des récompenses d'un utilisateur donné.
+     *
+     * @param user L'utilisateur pour lequel les récompenses doivent être calculées.
+     * @return Un objet Callable<Void> qui effectue le calcul des récompenses.
+     */
+    private Callable<Void> calculateRewardsCallable(User user) {
+        return () -> {
+            List<Attraction> attractions = getAttractions();
+            calculateRewards(user, attractions);
+            return null;
+        };
+    }
 
-        // Wait for all tasks to complete
-        for (Future<Void> future : futures) {
-            future.get();
+    /**
+     * Récupère toutes les récompenses pour une liste d'utilisateurs donnée.
+     *
+     * @param users La liste des utilisateurs pour lesquels les récompenses doivent être récupérées.
+     */
+    public void getAllRewards(List<User> users) {
+        ExecutorService executorService = Executors.newFixedThreadPool(1000);
+
+        try {
+            List<Callable<Void>> rewardTasks = new ArrayList<>();
+
+            for (User user : users) {
+                Callable<Void> task = calculateRewardsCallable(user);
+                rewardTasks.add(task);
+            }
+
+            executorService.invokeAll(rewardTasks);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         executorService.shutdown();
     }
-
 }
