@@ -16,3 +16,4 @@ test:
   image: gradle:8.1-jdk19
   script:
     - gradle test
+    
