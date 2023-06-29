@@ -1,0 +1,18 @@
+stages:
+  - build
+  - test
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+build:
+  stage: build
+  image: gradle:8.1-jdk19
+  script:
+    - gradle build
+
+test:
+  stage: test
+  image: gradle:8.1-jdk19
+  script:
+    - gradle test
