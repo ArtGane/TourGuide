@@ -7,13 +7,13 @@ variables:
 
 build:
   stage: build
-  image: gradle:8.1-jdk19
+  image: gradle:jdk19
   script:
     - gradle build
 
 test:
   stage: test
-  image: gradle:8.1-jdk19
+  image: gradle:jdk19
   script:
     - gradle test
     
