@@ -9,6 +9,7 @@ build:
   stage: build
   image: gradle:jdk19
   script:
+    - cd TourGuide
     - gradle build
 
 test:
