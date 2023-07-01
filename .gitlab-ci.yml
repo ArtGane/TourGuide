@@ -16,5 +16,6 @@ test:
   stage: test
   image: gradle:jdk19
   script:
+    - cd TourGuide
     - gradle test
     
