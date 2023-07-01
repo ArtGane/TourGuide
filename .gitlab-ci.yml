@@ -1,0 +1,20 @@
+stages:
+  - build
+  - test
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+build:
+  stage: build
+  image: gradle:jdk19
+  script:
+    - cd TourGuide
+    - gradle build
+
+test:
+  stage: test
+  image: gradle:jdk19
+  script:
+    - gradle test
+    
