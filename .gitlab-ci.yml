@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - package
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
@@ -18,4 +19,14 @@ test:
   script:
     - cd TourGuide
     - gradle test
-    
+
+package:
+  stage: package
+  image: gradle:jdk19
+  script:
+    - cd TourGuide
+    - gradle jar
+  artifacts:
+    paths:
+      - TourGuide/build/libs/*.jar
+ 
