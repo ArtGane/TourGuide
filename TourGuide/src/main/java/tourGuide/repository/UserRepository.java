@@ -21,10 +21,10 @@ import java.util.stream.IntStream;
 @Slf4j
 public class UserRepository {
 
-    private final Map<String, User> internalUserMap = new HashMap<>();
+    private Map<String, User> internalUserMap = new HashMap<>();
 
     public Map<String, User> getMapOfUsers() {
-        if (internalUserMap.isEmpty()) {
+        if (internalUserMap == null || internalUserMap.isEmpty()) {
             initializeInternalUsers();
         }
         return internalUserMap;

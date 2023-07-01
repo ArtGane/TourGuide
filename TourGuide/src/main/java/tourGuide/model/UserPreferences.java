@@ -76,7 +76,7 @@ public class UserPreferences {
 		this.numberOfChildren = numberOfChildren;
 	}
 
-	public void setCurrency(CurrencyUnit randomCurrency) {
+	public void setCurrency(CurrencyUnit currency) {
 		this.currency = currency;
 	}
 

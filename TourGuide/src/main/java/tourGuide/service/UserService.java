@@ -34,10 +34,6 @@ public class UserService {
         return internalUserMap;
     }
 
-    public List<UserReward> getUserRewards(User user) {
-        return user.getUserRewards();
-    }
-
     public void addUser(User user) {
         if (!internalUserMap.containsKey(user.getUserName())) {
             internalUserMap.put(user.getUserName(), user);
@@ -60,6 +56,7 @@ public class UserService {
             userPreferences.setNumberOfAdults(preferencesDto.getNumberOfAdults());
             userPreferences.setNumberOfChildren(preferencesDto.getNumberOfChildren());
 
+            user.setUserPreferences(userPreferences);
 
             UserPreferencesDto updatedPreferencesDto = convertToDto(userPreferences);
 
@@ -86,13 +83,15 @@ public class UserService {
         return preferencesDto;
     }
 
-    public void addToVisitedLocations(VisitedLocation visitedLocation, String userName) {
+    public boolean addToVisitedLocations(VisitedLocation visitedLocation, String userName) {
         User user = getUserByName(userName);
         if (user != null) {
             user.addToVisitedLocations(visitedLocation);
             logger.info("UserService: " + userName + " location is " + visitedLocation.location.latitude + visitedLocation.location.longitude);
+            return true;
         } else {
             logger.debug("UserService: " + userName + " doesn't exist");
+            return false;
         }
     }
 
