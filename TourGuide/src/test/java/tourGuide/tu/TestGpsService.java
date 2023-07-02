@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import tourGuide.service.UserService;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,15 +81,13 @@ public class TestGpsService {
     }
 
     @Test
-    void getUserLocation() {
-    }
-
-    @Test
-    void getAllCurrentLocations() {
-    }
-
-    @Test
     void getDistance() {
+        Location loc1 = new Location(10.5, 5.00);
+        Location loc2 = new Location(20.00, 10.5);
+
+        double distance = gpsService.getDistance(loc1, loc2);
+
+        assertNotNull(distance);
     }
 
     @Test
@@ -98,13 +96,14 @@ public class TestGpsService {
 
     @Test
     void nearAttraction() {
+        Location loc1 = new Location(10.5, 5.00);
+        Attraction attraction = new Attraction("Attraction", "City", "State", 10.0, 10.0);
+
+        assertNotNull(gpsService.nearAttraction(loc1, attraction));
     }
 
     @Test
     void calculateRewards() {
     }
 
-    @Test
-    void getAllRewards() {
-    }
 }
