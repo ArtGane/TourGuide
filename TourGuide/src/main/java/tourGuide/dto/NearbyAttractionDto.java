@@ -11,6 +11,16 @@ public class NearbyAttractionDto {
     private Location userLocation;
     private double distance;
 
+    public NearbyAttractionDto() {
+    }
+
+    public NearbyAttractionDto(String attractionName, Location attractionLocation, Location userLocation, double distance) {
+        this.attractionName = attractionName;
+        this.attractionLocation = attractionLocation;
+        this.userLocation = userLocation;
+        this.distance = distance;
+    }
+
     public String getAttractionName() {
         return attractionName;
     }

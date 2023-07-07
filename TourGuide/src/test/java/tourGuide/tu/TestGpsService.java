@@ -91,19 +91,11 @@ public class TestGpsService {
     }
 
     @Test
-    void getNearbyAttractions() {
-    }
-
-    @Test
     void nearAttraction() {
         Location loc1 = new Location(10.5, 5.00);
         Attraction attraction = new Attraction("Attraction", "City", "State", 10.0, 10.0);
 
         assertNotNull(gpsService.nearAttraction(loc1, attraction));
-    }
-
-    @Test
-    void calculateRewards() {
     }
 
 }
