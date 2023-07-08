@@ -34,7 +34,7 @@ public class TestTourGuideService {
 	TripPricer tripPricer;
 
 	@Test
-	public void getTripDealsTest() {
+	public void getTripDealsTest() throws Exception {
 		User user = new User(UUID.randomUUID(), "TestUser0", "06060606", "test@test.fr", new UserPreferences());
 		Attraction attraction = new Attraction("Le fun", "Ville du fun", "Etat du fun", 123.45648, 31.52564);
 		VisitedLocation visitedLocation = new VisitedLocation(user.getUserId(), new Location(124.35654, 32.15486), Date.from(Instant.now()));

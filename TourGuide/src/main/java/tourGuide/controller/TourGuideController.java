@@ -50,7 +50,7 @@ public class TourGuideController {
     }
 
     @GetMapping("/getTripDeals")
-    public List<Provider> getTripDeals(@RequestParam String userName) {
+    public List<Provider> getTripDeals(@RequestParam String userName) throws Exception {
         List<Provider> providers = tourGuideService.getTripDeals(userService.getUserByName(userName));
         return providers;
     }

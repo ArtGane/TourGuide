@@ -14,7 +14,7 @@ public class User {
 	private final String userName;
 	private String phoneNumber;
 	private String emailAddress;
-	private Date latestLocationTimestamp;
+	private Date latestLocationDate;
 	private Location location;
 	private List<VisitedLocation> visitedLocations = new ArrayList<>();
 	private List<UserReward> userRewards = new ArrayList<>();
@@ -53,12 +53,12 @@ public class User {
 		return emailAddress;
 	}
 	
-	public void setLatestLocationTimestamp(Date latestLocationTimestamp) {
-		this.latestLocationTimestamp = latestLocationTimestamp;
+	public void setLatestLocationDate(Date latestLocationDate) {
+		this.latestLocationDate = latestLocationDate;
 	}
 	
-	public Date getLatestLocationTimestamp() {
-		return latestLocationTimestamp;
+	public Date getLatestLocationDate() {
+		return latestLocationDate;
 	}
 	
 	public void addToVisitedLocations(VisitedLocation visitedLocation) {
