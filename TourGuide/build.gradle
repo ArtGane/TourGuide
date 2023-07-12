@@ -32,8 +32,8 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_19
-    targetCompatibility = JavaVersion.VERSION_19
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
@@ -57,6 +57,10 @@ dependencies {
 
 test {
     useJUnitPlatform()
+
+    // Spécifiez les options système pour les tests
+    systemProperty 'user.language', 'en'
+    systemProperty 'env', 'EN'
 }
 
 tasks.test {
@@ -76,6 +80,19 @@ tasks.jacocoTestReport {
         xml.required.set(false)
         csv.required.set(false)
         html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+    }
+
+    doLast {
+        def reportDir = "${jacocoTestReport.reports.html.outputLocation.get().asFile}/jacocoHtml"
+
+        // Exclude directories from the Jacoco report
+        def excludedDirs = ['repository', 'model', 'dto', 'conf']
+
+        excludedDirs.each { dir ->
+            fileTree(dir: file(reportDir)) {
+                exclude dir
+            }
+        }
     }
 }
 
